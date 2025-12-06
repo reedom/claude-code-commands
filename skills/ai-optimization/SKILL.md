@@ -2,7 +2,7 @@
 name: ai-optimization
 description: |
   Optimize content for AI agent consumption. Use when:
-  - Creating or revising prompts, commands, specs, documentation for Claude execution
+  - Creating/revising prompts, commands, specs, docs for Claude execution
   - User says "optimize for AI", "make AI-friendly", "revise using ai-optimization"
   - Content needs minimal tokens with maximal signal
   - Converting human-readable docs to AI-executable instructions
@@ -10,51 +10,51 @@ description: |
 
 # AI Optimization
 
-Transform content into token-efficient, high-signal format for AI consumption.
+Transform content into token-efficient, high-signal format.
 
-## Principle
-
+<principle>
 Context is finite. Goal: smallest high-signal token set maximizing outcome.
+</principle>
 
 ## Process
 
 1. Read target file
-2. Apply optimization rules below
+2. Apply optimization rules
 3. Preserve semantic meaning
 4. Output optimized version
 
-## Optimization Rules
+## Structure Rules
 
-### Structure
-- XML tags for section delineation
-- Markdown headers for hierarchy
-- Bullets over paragraphs
+### Format hierarchy
+- XML tags: section delineation
+- Markdown headers: hierarchy
+- Bullets: over paragraphs
 - One instruction per line
 
-### XML + Markdown Tables
-
-When XML tags wrap tables, add empty lines after opening tag and before closing tag:
+### XML + Markdown tables
 
 ```markdown
-<!-- WRONG - table breaks -->
+<!-- WRONG -->
 <data>
-| Col1 | Col2 |
-|------|------|
-| A    | B    |
+| Col | Val |
+|-----|-----|
+| A   | B   |
 </data>
 
-<!-- CORRECT - table renders -->
+<!-- CORRECT - empty lines required -->
 <data>
 
-| Col1 | Col2 |
-|------|------|
-| A    | B    |
+| Col | Val |
+|-----|-----|
+| A   | B   |
 
 </data>
 ```
 
-### Content
-- Direct imperatives only
+## Content Rules
+
+### Include
+- Direct imperatives
 - Concrete examples over abstractions
 - Code examples over prose
 - Templates with placeholders
@@ -67,26 +67,105 @@ When XML tags wrap tables, add empty lines after opening tag and before closing 
 - Pronoun ambiguity
 - Abstract descriptions
 
-## Reference
+### Clarity standards
+- Unambiguous instructions
+- Explicit tool names
+- Concrete example values
+- No implicit references
 
-For detailed context engineering patterns: [references/context-engineering.md](references/context-engineering.md)
+## System Prompt Design
+
+### Structure template
+```xml
+<background_information>
+  <!-- Why and what -->
+</background_information>
+
+<instructions>
+  <!-- How to execute -->
+</instructions>
+
+## Tool guidance
+  <!-- Tool-specific directives -->
+
+## Output description
+  <!-- Expected format -->
+```
+
+### Balance
+- Simple, direct language
+- Right altitude for guidance
+- Avoid brittle instructions
+- Enable autonomous operation
+
+## Tool Design
+
+### Requirements
+- Self-contained
+- Error robust
+- Clear intended use
+- Descriptive, unambiguous parameters
+
+### Avoid
+- Bloated tool sets
+- Overlapping functionality
+- Ambiguous parameter names
+
+## Examples Design
+
+### Use
+- Diverse, canonical examples
+- Effective behavior portrayal
+- Core functionality demonstration
+
+### Avoid
+- Exhaustive edge case lists
+- Redundant examples
+- Over-specification
+
+## Context Management
+
+### Compaction
+- Summarize history periodically
+- Remove low-signal exchanges
+- Preserve critical decisions
+
+### Structured notes
+- Maintain persistent memory outside context
+- Reference when needed
+- Update incrementally
+
+### Sub-agents
+- Specialized agents for complex tasks
+- Return condensed results
+- Chain for multi-step workflows
+
+## Evolution
+
+As models improve: less prescriptive engineering needed.
+
+Trajectory:
+- Simpler prompts
+- Higher-level abstractions
+- Self-directed problem solving
+- Adaptive context management
 
 ## Examples
 
 <example>
-Input (human-readable):
+Input:
 ```
 This command helps you deploy your application to the staging environment.
 It will first run the tests, and then if they pass, it will build the
 application and deploy it to staging.
 ```
 
-Output (AI-optimized):
+Output:
 ```
 Deploy to staging:
 1. Run tests
-2. If pass: build application
-3. Deploy to staging
+2. If pass: build
+3. Deploy
 ```
 </example>
 
