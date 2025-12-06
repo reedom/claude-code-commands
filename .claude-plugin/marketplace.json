@@ -1,0 +1,22 @@
+{
+  "name": "reedom-commands-and-skills",
+  "owner": {
+    "name": "HANAI Tohru",
+    "email": "tohru@reedom.com"
+  },
+  "metadata": {
+    "description": "commands and skills for developers",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "ai-optimization",
+      "description": "Document Optimization(Compaction) for Claude Code",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/ai-optimization",
+      ]
+    }
+  ]
+}
