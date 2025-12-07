@@ -6,6 +6,7 @@ description: |
   - User says "optimize for AI", "make AI-friendly", "revise using ai-optimization"
   - Content needs minimal tokens with maximal signal
   - Converting human-readable docs to AI-executable instructions
+allowed-tools: Read, Write, TodoWrite
 ---
 
 # AI Optimization
