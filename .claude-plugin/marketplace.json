@@ -16,9 +16,7 @@
         "name": "HANAI Tohru",
         "email": "tohru@reedom.com"
       },
-      "source": {
-        "./"
-      },
+      "source": "./",
       "skills": [
         "./skills/ai-optimization"
       ]
@@ -30,9 +28,7 @@
         "name": "HANAI Tohru",
         "email": "tohru@reedom.com"
       },
-      "source": {
-        "./"
-      },
+      "source": "./",
       "commands": [
         "./commands/git/commit.md"
       ]
@@ -44,9 +40,7 @@
         "name": "HANAI Tohru",
         "email": "tohru@reedom.com"
       },
-      "source": {
-        "./"
-      },
+      "source": "./",
       "skills": [
         "./skills/modified-kiro-specs"
       ]
