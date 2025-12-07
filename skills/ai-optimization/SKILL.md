@@ -74,6 +74,16 @@ Context is finite. Goal: smallest high-signal token set maximizing outcome.
 - Concrete example values
 - No implicit references
 
+### Diagrams & tables
+Remove if:
+- Illustrates obvious concepts (e.g., trivial data flows, self-evident relationships)
+- Duplicates information already clear from text/code
+
+Compress if:
+- Contains redundant rows/columns
+- Verbose labels replaceable with concise terms
+- Structure conveys less information than inline text
+
 ## System Prompt Design
 
 ### Structure template
