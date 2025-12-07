@@ -12,10 +12,23 @@
     {
       "name": "ai-optimization",
       "description": "Document Optimization(Compaction) for Claude Code",
-      "source": "./",
-      "strict": false,
+      "owner": {
+        "name": "HANAI Tohru",
+        "email": "tohru@reedom.com"
+      },
       "skills": [
         "./skills/ai-optimization"
+      ]
+    },
+    {
+      "name": "git",
+      "description": "Git workflow commands for conventional commits",
+      "owner": {
+        "name": "HANAI Tohru",
+        "email": "tohru@reedom.com"
+      },
+      "commands": [
+        "./commands/git/commit.md"
       ]
     }
   ]
