@@ -12,9 +12,12 @@
     {
       "name": "ai-optimization",
       "description": "Document Optimization(Compaction) for Claude Code",
-      "owner": {
+      "author": {
         "name": "HANAI Tohru",
         "email": "tohru@reedom.com"
+      },
+      "source": {
+        "./"
       },
       "skills": [
         "./skills/ai-optimization"
@@ -23,12 +26,29 @@
     {
       "name": "git",
       "description": "Git workflow commands for conventional commits",
-      "owner": {
+      "author": {
         "name": "HANAI Tohru",
         "email": "tohru@reedom.com"
       },
+      "source": {
+        "./"
+      },
       "commands": [
         "./commands/git/commit.md"
+      ]
+    },
+    {
+      "name": "modified-kiro-specs",
+      "description": "Detect Kiro specs with modified files in current branch. Use before PRs, spec-specific tests, or CI filtering.",
+      "author": {
+        "name": "HANAI Tohru",
+        "email": "tohru@reedom.com"
+      },
+      "source": {
+        "./"
+      },
+      "skills": [
+        "./skills/modified-kiro-specs"
       ]
     }
   ]
