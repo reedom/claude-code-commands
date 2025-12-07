@@ -15,7 +15,7 @@
       "source": "./",
       "strict": false,
       "skills": [
-        "./skills/ai-optimization",
+        "./skills/ai-optimization"
       ]
     }
   ]
