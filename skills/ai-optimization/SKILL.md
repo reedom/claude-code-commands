@@ -84,6 +84,11 @@ Compress if:
 - Verbose labels replaceable with concise terms
 - Structure conveys less information than inline text
 
+### Language
+- English no matter the original language unless otherwise specified through prompt
+- Most token-efficient for current models
+- Preserves technical terminology accuracy
+
 ## System Prompt Design
 
 ### Structure template
