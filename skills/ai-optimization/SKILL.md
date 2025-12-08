@@ -1,38 +1,54 @@
 ---
 name: ai-optimization
-description: |
-  Optimize content for AI agent consumption. Use when:
-  - Creating/revising prompts, commands, specs, docs for Claude execution
-  - User says "optimize for AI", "make AI-friendly", "revise using ai-optimization"
-  - Content needs minimal tokens with maximal signal
-  - Converting human-readable docs to AI-executable instructions
+description: Optimize input context for AI consumption using context engineering principles. Use when: (1) User wants to optimize content for AI/Claude explicitly, (2) User invokes with --foryou flag.
 allowed-tools: Read, Write, TodoWrite
 ---
 
-# AI Optimization
+# Context Engineering Optimizer
 
-Transform content into token-efficient, high-signal format.
+Optimize content for AI consumption by reducing tokens while preserving essential information.
 
-<principle>
-Context is finite. Goal: smallest high-signal token set maximizing outcome.
-</principle>
+## Core Principle
 
-## Process
+Context is finite. Every token depletes the attention budget. Optimize ruthlessly.
 
-1. Read target file
-2. Apply optimization rules
-3. Preserve semantic meaning
-4. Output optimized version
+Reference: [context-engineering-guide.md](references/context-engineering-guide.md)
 
-## Structure Rules
+## Optimization Workflow
 
-### Format hierarchy
-- XML tags: section delineation
-- Markdown headers: hierarchy
-- Bullets: over paragraphs
-- One instruction per line
+Use TodoWrite
 
-### XML + Markdown tables
+### Step 1: Create Draft
+
+Analyze input and create optimized version:
+
+**Remove/Reduce**:
+- Redundant explanations (AI already knows common knowledge)
+- Verbose transitions ("In this section, we will discuss...")
+- Duplicate information across sections
+- Filler words and phrases
+- Overly detailed examples when one suffices
+- Charts/diagrams/tables if text conveys same info more efficiently
+
+**Preserve**:
+- Domain-specific knowledge AI lacks
+- Concrete examples that demonstrate behavior
+- Critical constraints and rules
+- Structural organization (headers, sections)
+- Actionable instructions
+
+**Format choices**:
+- Prefer bullet points over prose
+- Use imperative form
+- Choose text OR graphical representation, not both
+- Keep code examples minimal but complete
+
+**Language**:
+- English no matter the original language unless otherwise specified through prompt
+- Most token-efficient for current models
+- Preserves technical terminology accuracy
+
+**XML + Markdown tables**:
 
 ```markdown
 <!-- WRONG -->
@@ -52,152 +68,38 @@ Context is finite. Goal: smallest high-signal token set maximizing outcome.
 </data>
 ```
 
-## Content Rules
+### Step 2: Compare and Refine
 
-### Include
-- Direct imperatives
-- Concrete examples over abstractions
-- Code examples over prose
-- Templates with placeholders
-- Specific over generic
+Compare draft against original:
 
-### Eliminate
-- Filler words
-- Redundant context
-- Explanatory prose
-- Pronoun ambiguity
-- Abstract descriptions
+**Check for information loss**:
+- Critical details missing?
+- Context for understanding removed?
+- Edge cases dropped that matter?
 
-### Clarity standards
-- Unambiguous instructions
-- Explicit tool names
-- Concrete example values
-- No implicit references
+**Check for over-optimization**:
+- Can sections be further condensed?
+- Any remaining redundancy?
+- Self-evident comments still present?
 
-### Diagrams & tables
-Remove if:
-- Illustrates obvious concepts (e.g., trivial data flows, self-evident relationships)
-- Duplicates information already clear from text/code
+**Restore if**:
+- Meaning becomes ambiguous
+- Important nuance lost
+- Actionability reduced
 
-Compress if:
-- Contains redundant rows/columns
-- Verbose labels replaceable with concise terms
-- Structure conveys less information than inline text
+### Step 3: Output
 
-### Language
-- English no matter the original language unless otherwise specified through prompt
-- Most token-efficient for current models
-- Preserves technical terminology accuracy
+**For materials (files to overwrite)**:
+- Overwrite original with optimized version
 
-## System Prompt Design
+**For transient content**:
+- Output the optimized version as final result
 
-### Structure template
-```xml
-<background_information>
-  <!-- Why and what -->
-</background_information>
+## Quality Criteria
 
-<instructions>
-  <!-- How to execute -->
-</instructions>
-
-## Tool guidance
-  <!-- Tool-specific directives -->
-
-## Output description
-  <!-- Expected format -->
-```
-
-### Balance
-- Simple, direct language
-- Right altitude for guidance
-- Avoid brittle instructions
-- Enable autonomous operation
-
-## Tool Design
-
-### Requirements
-- Self-contained
-- Error robust
-- Clear intended use
-- Descriptive, unambiguous parameters
-
-### Avoid
-- Bloated tool sets
-- Overlapping functionality
-- Ambiguous parameter names
-
-## Examples Design
-
-### Use
-- Diverse, canonical examples
-- Effective behavior portrayal
-- Core functionality demonstration
-
-### Avoid
-- Exhaustive edge case lists
-- Redundant examples
-- Over-specification
-
-## Context Management
-
-### Compaction
-- Summarize history periodically
-- Remove low-signal exchanges
-- Preserve critical decisions
-
-### Structured notes
-- Maintain persistent memory outside context
-- Reference when needed
-- Update incrementally
-
-### Sub-agents
-- Specialized agents for complex tasks
-- Return condensed results
-- Chain for multi-step workflows
-
-## Evolution
-
-As models improve: less prescriptive engineering needed.
-
-Trajectory:
-- Simpler prompts
-- Higher-level abstractions
-- Self-directed problem solving
-- Adaptive context management
-
-## Examples
-
-<example>
-Input:
-```
-This command helps you deploy your application to the staging environment.
-It will first run the tests, and then if they pass, it will build the
-application and deploy it to staging.
-```
-
-Output:
-```
-Deploy to staging:
-1. Run tests
-2. If pass: build
-3. Deploy
-```
-</example>
-
-<example>
-Input:
-```
-When you need to create a new user, you should make sure to validate
-the email address first, then check if the username is available,
-and finally create the user account.
-```
-
-Output:
-```
-Create user:
-- Validate email
-- Check username availability
-- Create account
-```
-</example>
+Optimized content should:
+- Reduce token count by 30-70% typically
+- Preserve all actionable information
+- Maintain clear structure
+- Be self-contained (no dangling references)
+- Target the Goldilocks zone: specific enough to guide, flexible enough to adapt
