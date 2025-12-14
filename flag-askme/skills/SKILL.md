@@ -1,5 +1,5 @@
 ---
-name: askme
+name: reedom:askme
 description: Interactive clarification mode for uncertain situations. Use only when user invokes with --askme flag.
 ---
 

@@ -1,5 +1,5 @@
 ---
-name: modified-kiro-specs
+name: detect-kiro-specs
 description: Detect Kiro specs with modified files in current branch. Use before PRs, spec-specific tests, or CI filtering.
 allowed-tools: Bash(ls:*)
 ---

@@ -1,0 +1,11 @@
+{
+  "name": "reedom-flag-askme",
+  "version": "1.0.0",
+  "description": "Interactive clarification mode for uncertain situations. Use only when user invokes with --askme flag.",
+  "author": {
+    "name": "HANAI Tohru",
+    "email": "tohru@reedom.com"
+  },
+  "keywords": ["flag", "global flag", "ask", "askme"],
+  "license": "MIT"
+}

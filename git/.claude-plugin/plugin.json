@@ -1,0 +1,11 @@
+{
+  "name": "reedom-git",
+  "version": "1.0.0",
+  "description": "Git workflow commands for conventional commits",
+  "author": {
+    "name": "HANAI Tohru",
+    "email": "tohru@reedom.com"
+  },
+  "license": "MIT",
+  "keywords": ["git", "commit"]
+}
