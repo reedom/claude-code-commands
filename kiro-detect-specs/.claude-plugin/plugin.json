@@ -1,0 +1,11 @@
+{
+  "name": "reedom-kiro-detect-specs",
+  "version": "1.0.0",
+  "description": "Detect Kiro specs with modified files in current branch. Use before PRs, spec-specific tests, or CI filtering.",
+  "author": {
+    "name": "HANAI Tohru",
+    "email": "tohru@reedom.com"
+  },
+  "license": "MIT",
+  "keywords": ["kiro"]
+}

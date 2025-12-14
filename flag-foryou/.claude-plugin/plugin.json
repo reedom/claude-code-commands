@@ -1,0 +1,11 @@
+{
+  "name": "reedom-flag-foryou",
+  "version": "1.0.0",
+  "description": "Document Optimization(Compaction) for Claude Code",
+  "author": {
+    "name": "HANAI Tohru",
+    "email": "tohru@reedom.com"
+  },
+  "keywords": ["flag", "global flag", "optimization", "compaction"],
+  "license": "MIT"
+}

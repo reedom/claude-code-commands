@@ -10,52 +10,44 @@
   },
   "plugins": [
     {
-      "name": "ai-optimization",
-      "description": "Document Optimization(Compaction) for Claude Code",
-      "author": {
-        "name": "HANAI Tohru",
-        "email": "tohru@reedom.com"
-      },
-      "source": "./",
-      "skills": [
-        "./skills/ai-optimization"
-      ]
-    },
-    {
-      "name": "git",
-      "description": "Git workflow commands for conventional commits",
-      "author": {
-        "name": "HANAI Tohru",
-        "email": "tohru@reedom.com"
-      },
-      "source": "./",
-      "commands": [
-        "./commands/git/commit.md"
-      ]
-    },
-    {
-      "name": "modified-kiro-specs",
-      "description": "Detect Kiro specs with modified files in current branch. Use before PRs, spec-specific tests, or CI filtering.",
-      "author": {
-        "name": "HANAI Tohru",
-        "email": "tohru@reedom.com"
-      },
-      "source": "./",
-      "skills": [
-        "./skills/modified-kiro-specs"
-      ]
-    },
-    {
-      "name": "askme",
+      "name": "reedom-flag-askme",
       "description": "Interactive clarification mode for uncertain situations. Use only when user invokes with --askme flag.",
       "author": {
         "name": "HANAI Tohru",
         "email": "tohru@reedom.com"
       },
-      "source": "./",
-      "skills": [
-        "./skills/askme"
-      ]
+      "source": "./flag-askme"
+    },
+    {
+      "name": "reedom-flag-foryou",
+      "description": "Document Optimization(Compaction) for Claude Code",
+      "author": {
+        "name": "HANAI Tohru",
+        "email": "tohru@reedom.com"
+      },
+      "source": "./flag-foryou"
+    },
+    {
+      "name": "reedom-git",
+      "description": "Git workflow commands for conventional commits",
+      "author": {
+        "name": "HANAI Tohru",
+        "email": "tohru@reedom.com"
+      },
+      "source": "./git",
+      "category": "productivity",
+      "keywords": ["git", "commit"]
+    },
+    {
+      "name": "reedom-kiro-detect-specs",
+      "description": "Detect Kiro specs with modified files in current branch. Use before PRs, spec-specific tests, or CI filtering.",
+      "author": {
+        "name": "HANAI Tohru",
+        "email": "tohru@reedom.com"
+      },
+      "source": "./kiro-detect-specs",
+      "category": "productivity",
+      "keywords": ["kiro"]
     }
   ]
 }
