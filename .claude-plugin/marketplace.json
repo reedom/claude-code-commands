@@ -39,6 +39,17 @@
       "keywords": ["git", "commit"]
     },
     {
+      "name": "reedom-gh",
+      "description": "GitHub workflow skills for PR management",
+      "author": {
+        "name": "HANAI Tohru",
+        "email": "tohru@reedom.com"
+      },
+      "source": "./gh",
+      "category": "productivity",
+      "keywords": ["git", "github", "gh", "pr"]
+    },
+    {
       "name": "reedom-kiro-detect-specs",
       "description": "Detect Kiro specs with modified files in current branch. Use before PRs, spec-specific tests, or CI filtering.",
       "author": {
