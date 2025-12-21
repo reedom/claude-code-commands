@@ -4,10 +4,6 @@
     "name": "HANAI Tohru",
     "email": "tohru@reedom.com"
   },
-  "metadata": {
-    "description": "commands and skills for developers",
-    "version": "1.0.0"
-  },
   "plugins": [
     {
       "name": "reedom-flag-askme",

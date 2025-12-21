@@ -1,11 +1,11 @@
 {
   "name": "reedom-git",
-  "version": "1.0.0",
-  "description": "Git workflow commands for conventional commits",
+  "version": "2.0.0",
+  "description": "Git workflow commands for conventional commits with modular architecture",
   "author": {
     "name": "HANAI Tohru",
     "email": "tohru@reedom.com"
   },
   "license": "MIT",
-  "keywords": ["git", "commit"]
+  "keywords": ["git", "commit", "conventional-commits"]
 }
