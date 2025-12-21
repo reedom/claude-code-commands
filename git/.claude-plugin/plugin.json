@@ -1,6 +1,6 @@
 {
   "name": "reedom-git",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Git workflow commands for conventional commits with modular architecture",
   "author": {
     "name": "HANAI Tohru",
