@@ -55,6 +55,17 @@
       "source": "./kiro-detect-specs",
       "category": "productivity",
       "keywords": ["kiro"]
+    },
+    {
+      "name": "reedom-quick-refactor",
+      "description": "Post-implementation review and refactoring with specialized multi-agent architecture",
+      "author": {
+        "name": "HANAI Tohru",
+        "email": "tohru@reedom.com"
+      },
+      "source": "./quick-refactor",
+      "category": "productivity",
+      "keywords": ["refactor", "review", "code-quality", "security", "performance"]
     }
   ]
 }
