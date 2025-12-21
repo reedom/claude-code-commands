@@ -1,143 +1,88 @@
 ---
-description: Create conventional commits from staged changes or intelligently select from working tree with automatic splitting
+description: Select files from working tree and delegate to commit-maker agent
 argument-hint: [--staged|-s] [--lang <code>]
-allowed-tools: Read, TodoWrite, Bash(awk:*), Bash(grep:*), Bash(ls:*), Bash(sed:*), Bash(sort:*), Bash(tr:*), Bash(uniq:*), Bash(wc:*), Bash(git add:*), Bash(git commit:*), Bash(git config:*), Bash(git diff:*), Bash(git log:*), Bash(git ls-files:*), Bash(git reset:*), Bash(git restore:*), Bash(git rev-parse:*), Bash(git status:*)
+allowed-tools: Task, Bash(git status:*), Skill(reedom-git:collect-commit-info), Bash(git commit:*), Bash(git add:*), Bash(git reset:*), Bash(${CLAUDE_PLUGIN_ROOT}/skills/collect-commit-info/scripts/collect-info.sh:*), Bash(${CLAUDE_PLUGIN_ROOT}/skills/collect-commit-info/scripts/cleanup.sh:*)
 ---
 
-# Git Commit Command
+<prohibited>
 
-## Objective
+NEVER use these commands:
+- `git diff` (any form)
+- `git log`
+- `git add`
+- `git commit`
+- Any git command except `git status --porcelain`
 
-Create one or more conventional commits following the Conventional Commits specification. Automatically split large or mixed changesets into logical, atomic commits.
+NEVER stage files. Agent handles staging.
 
-## Operating Modes
+</prohibited>
 
-### Staged Mode (`--staged` flag present)
-- Process only currently staged files
-- Preserve the original staged set
-- Re-stage files by group for each commit
-- Leave any remaining files staged after processing
+## Arguments
 
-### Language in commit title and body (`--lang` flag present)
-default: en, accepts any language code (e.g., ja, de, fr, zh)
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--staged`, `-s` | false | Pass-through to agent (skip file selection) |
+| `--lang` | system | Commit message language code |
 
-### Smart Mode (default)
-- Automatically stage new and modified files from working tree
-- Exclude temporary artifacts and ignored files
-- Process all eligible changes
+## Execution
 
-## Exclusion Patterns (Smart Mode Only)
+### If `-s` flag present
 
-Automatically exclude these file types:
-- Files matching `.gitignore` patterns
-- Cache directories (`node_modules/`, `.cache/`, `__pycache__/`)
-- Lock files and temporary files (`.tmp`, `.lock`, `.DS_Store`)
-- Build artifacts (`dist/`, `build/`, `target/`)
+Delegate immediately. No git commands.
 
-## Pre-execution Analysis
+```
+Task(subagent_type: "reedom-git:commit-maker", prompt: "--lang=<lang>")
+```
 
-Run these commands to gather context:
+### If no `-s` flag
+
+**Step 1: Read working tree**
+
 ```bash
-git rev-parse --show-toplevel 2>/dev/null || echo "Not a git repo"
-git status -sb || true
-git diff --cached --shortstat || true
-git diff --shortstat || true
+git status --porcelain
 ```
 
-## Execution Steps
+Empty output → report "Nothing to commit" → exit.
 
-### 1. Initialize Task Tracking
-- Use TodoWrite to create task list with all required steps
-- Mark current task as in_progress
+**Step 2: Select files**
 
-### 2. Determine Operating Mode
-- Check if `$ARGUMENTS` contains `--staged` flag
-- Set mode accordingly
+From `git status --porcelain` output, select files using conversation context.
 
-### 3. Collect File Candidates
-Staged Mode:
-```bash
-git diff --name-only --cached -z
-```
+Include:
+- Status `M`, `A`, `D`, `R` (modified/added/deleted/renamed)
+- Untracked (`??`) in same directory as changes
+- Untracked with related naming (e.g., test file for source)
+- Files mentioned in conversation
 
-Smart Mode:
-```bash
-git status --porcelain -z
-```
-- Keep files with status: `M`, `A`, `AM`, `MM`, `??`
-- Filter out exclusion patterns
-- Stage the filtered files
+Exclude:
+- Unrelated directories
+- Scratch/temp files
 
-### 4. Analyze Staged Changes
-```bash
-git diff --cached --numstat || true
-```
-
-Categorize files by:
-- Dependencies: `package.json`, `.lock`, `requirements.txt`, `Cargo.toml`
-- Build/CI/Config: `.github/`, `.yml`, `.yaml`, `.toml`, `.json` (config)
-- Source Code: Group by module/directory
-- Tests: `test`, `spec`, `__tests__/`
-- Documentation: `.md`, `docs/`
-- Style-only: Changes with no functional impact (check with `git diff -w`)
-
-### 5. Commit Splitting Logic
-
-Create multiple commits if ANY condition is met:
-- ≥15 files changed
-- ≥500 lines changed total
-- Multiple categories present
-- Multiple scopes within same category
-
-### 6. Commit Creation Order
-
-Process groups in this sequence:
-1. Dependencies (`chore(deps):`)
-2. Build/CI/Config (`build:`, `ci:`, `chore:`)
-3. Source Code by module (`feat:`, `fix:`, `refactor:`)
-4. Tests (`test:`)
-5. Documentation (`docs:`)
-6. Style-only (`style:`)
-
-### 7. Commit Message Format
+**Step 3: Delegate**
 
 ```
-type(scope): imperative subject under 50 chars
-
-Optional body explaining what and why, wrapped at 72 chars.
-Use bullets if multiple changes:
-- First change
-- Second change
-
-BREAKING CHANGE: Description if applicable
+Task(
+  subagent_type: "reedom-git:commit-maker",
+  prompt: "--lang=<lang> --files=<comma-separated-paths>"
+)
 ```
 
-Commit Types:
-- `feat`: New feature
-- `fix`: Bug fix
-- `refactor`: Code restructuring
-- `perf`: Performance improvement
-- `docs`: Documentation changes
-- `style`: Code style/formatting
-- `test`: Test changes
-- `build`: Build system changes
-- `chore`: Maintenance tasks
-- `ci`: CI/CD changes
+## Example
 
-## Success Criteria
+Input:
+```
+ M src/auth/login.ts
+ M src/auth/session.ts
+?? src/auth/oauth.ts
+?? scratch/notes.txt
+```
 
-Each commit must:
-- Follow Conventional Commits specification exactly
-- Have a clear, imperative subject line
-- Be atomic (single logical change)
-- Include appropriate scope when applicable
-- Have descriptive body for complex changes
+Decision: auth files related, scratch excluded.
 
-## Output Report
-
-Display:
-- Mode Used: `staged` or `smart`
-- Commits Created: `<hash7> type(scope): subject (+additions -deletions, N files)`
-- Split Status: Whether changes were split across multiple commits
-- Excluded Files: Count and patterns (Smart mode only)
-- Breaking Changes: Summary if any were detected
+Output:
+```
+Task(
+  subagent_type: "reedom-git:commit-maker",
+  prompt: "--files=src/auth/login.ts,src/auth/session.ts,src/auth/oauth.ts"
+)
+```
