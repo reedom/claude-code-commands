@@ -1,0 +1,11 @@
+{
+  "name": "reedom-gh",
+  "version": "1.0.0",
+  "description": "GitHub workflow skills for PR management",
+  "author": {
+    "name": "HANAI Tohru",
+    "email": "tohru@reedom.com"
+  },
+  "keywords": ["github", "gh", "pr", "review"],
+  "license": "MIT"
+}
