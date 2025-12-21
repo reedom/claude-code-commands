@@ -7,7 +7,8 @@ allowed-tools: Skill(reedom-git:collect-commit-info), Bash(git commit:*), Bash(g
 
 ## Critical Rule
 
-**Skill returns DATA. You EXECUTE commits.**
+- Skill returns DATA. You EXECUTE commits.
+- Do NOT use Write tool. Pass all content inline via command arguments.
 
 Never return JSON as output. Run `git commit` for each spec.
 

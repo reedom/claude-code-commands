@@ -14,6 +14,7 @@ NEVER use these commands:
 - Any git command except `git status --porcelain`
 
 NEVER stage files. Agent handles staging.
+NEVER pass args other than `--lang`/`--files`.
 
 </prohibited>
 
