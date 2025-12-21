@@ -1,7 +1,7 @@
 ---
 description: Make a new GitHub pull request.
-argument-hint: [--commit|-c] [--against|-a <branch>] [--lang <ja|en>] [--no-push|--np] [--draft|-d] [--skip-ai-review|-q]
-allowed-tools: Task
+argument-hint: [--against|-a <branch>] [--lang <ja|en>] [--no-push|--np] [--draft|-d] [--skip-ai-review|-q]
+allowed-tools: Task, Skill(reedom-gh:collect-pr-info), Bash(git push:*), Bash(gh pr create:*), Bash(gh pr edit:*), Bash(gh pr view:*), Bash(gh pr list:*)
 ---
 
 Invoke `reedom-gh:pr-maker` agent with the parsed arguments IMMEDIATELY.
@@ -36,7 +36,7 @@ When `--lang` not specified:
 
 ```
 Task(
-  subagent_type: "reedom-gh:make-pr",
+  subagent_type: "reedom-gh:pr-maker",
   prompt: "--against=<val>, --lang=<val>, --prefix=<val>, --no-push, --draft"
 )
 ```

@@ -1,11 +1,15 @@
 ---
 name: pr-maker
 description: Create/update GitHub PR. Invoked by make-pr command.
-model: haiku
-allowed-tools: Skill(reedom-gh:create-draft-pr), Bash(git push:*), Bash(gh pr create:*), Bash(gh pr edit:*), Bash(gh pr view:*), Bash(gh pr list:*)
+model: sonnet
+allowed-tools: Skill(reedom-gh:collect-pr-info), Bash(git push:*), Bash(gh pr create:*), Bash(gh pr edit:*), Bash(gh pr view:*), Bash(gh pr list:*)
 ---
 
-Invoke skill `reedom-gh:create-draft-pr`, execute git/gh commands with prepared content.
+Invoke skill `reedom-gh:collect-pr-info`, execute git/gh commands with prepared content.
+
+CRITICAL:
+- Do NOT use Write tool. Pass all content inline via command arguments.
+- Only use `--draft` flag in `gh pr create` if `--draft` was explicitly passed in input args. Default is regular PR (no --draft).
 
 ## Input Args
 
@@ -18,7 +22,7 @@ Invoke skill `reedom-gh:create-draft-pr`, execute git/gh commands with prepared 
 
 ### 1. Invoke Skill
 
-Skill: `reedom-gh:create-draft-pr`
+skill: `reedom-gh:collect-pr-info`
 Pass: --against, --lang, --prefix
 
 Returns ready-to-use content:
