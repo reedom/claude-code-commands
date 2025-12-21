@@ -1,17 +1,17 @@
 ---
 description: Post-implementation review and refactoring with specialized multi-agent architecture
-argument-hint: "[--against <branch>] [--files <paths>] [--commit|-c]"
-allowed-tools: Task, Bash(git status:*)
+argument-hint: "[--against|-a <branch>] [--files|-f <paths>] [--commit|-c]"
+allowed-tools: Task, Read, Write, TodoWrite, Ls, Find, Skill(reedom-quick-refactor:collect-commits-and-files), Skill(reedom-git:smart-commit), Bash(git status:*), Bash(git rev-parse:*), Bash(${CLAUDE_PLUGIN_ROOT}/skills/collect-commits-and-files/scripts/collect-info.sh:*), Bash(${CLAUDE_PLUGIN_ROOT}/skills/collect-commits-and-files/scripts/cleanup.sh:*)
 ---
 
-Entry point for post-implementation review. Collects file info and delegates to orchestrator agent.
+Entry point for post-implementation review. Collects file info and delegates to `quick-refactor:quick-refactor-orchestrator` agent.
 
 ## Arguments
 
 | Flag | Default | Description |
 |------|---------|-------------|
-| `--against` | origin/main | Target branch for diff comparison |
-| `--files` | (none) | Comma-separated file paths to review |
+| `--against`, `-a` | origin/main | Target branch for diff comparison |
+| `--files`, `-f` | (none) | Comma-separated file paths to review |
 | `--commit`, `-c` | false | Commit after each successful refactoring |
 
 ## Examples
@@ -56,7 +56,7 @@ Invoke orchestrator agent with all flags:
 
 ```
 Task(
-  subagent_type: "quick-refactor:orchestrator",
+  subagent_type: "reedom-quick-refactor:quick-refactor-orchestrator",
   prompt: "--against=<branch> --files=<paths> --commit"
 )
 ```

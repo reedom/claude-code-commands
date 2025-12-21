@@ -1,5 +1,5 @@
 ---
-name: quick-refactor:collect-commits-and-files
+name: collect-commits-and-files
 description: Collect changed files from git diff and explicit paths, categorize by type, output manifest.
 allowed-tools: Bash(${CLAUDE_PLUGIN_ROOT}/skills/collect-commits-and-files/scripts/collect-info.sh:*), Bash(${CLAUDE_PLUGIN_ROOT}/skills/collect-commits-and-files/scripts/cleanup.sh:*)
 ---

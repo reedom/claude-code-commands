@@ -1,6 +1,6 @@
 {
-  "name": "quick-refactor",
-  "version": "1.0.0",
+  "name": "reedom-quick-refactor",
+  "version": "1.0.1",
   "description": "Post-implementation review and refactoring with specialized multi-agent architecture",
   "author": {
     "name": "HANAI Tohru",

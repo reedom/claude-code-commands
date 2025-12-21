@@ -1,7 +1,8 @@
 ---
-name: orchestrator
+name: quick-refactor-orchestrator
 description: Coordinates three-phase review workflow: collect, review (parallel), refactor (sequential)
-allowed-tools: Skill(quick-refactor:collect-commits-and-files), Skill(reedom-git:smart-commit), Task, Read, Write, TodoWrite, Bash(${CLAUDE_PLUGIN_ROOT}/skills/collect-commits-and-files/scripts/cleanup.sh:*), Bash(git status:*)
+allowed-tools: Skill(reedom-quick-refactor:collect-commits-and-files), Skill(reedom-git:smart-commit), Task, Read, Write, TodoWrite, Bash(${CLAUDE_PLUGIN_ROOT}/skills/collect-commits-and-files/scripts/cleanup.sh:*), Bash(git status:*)
+model: inherit
 ---
 
 Orchestrates the quick-refactor workflow across three phases.
@@ -28,7 +29,7 @@ If `--commit` flag is set:
 
 Invoke skill with parsed arguments:
 ```
-Skill(quick-refactor:collect-commits-and-files) --against=<branch> --files=<paths>
+Skill(reedom-quick-refactor:collect-commits-and-files) --against=<branch> --files=<paths>
 ```
 
 Parse manifest response:
@@ -50,23 +51,23 @@ Read file lists from `files_dir`:
 - `test.txt` - test files
 - `config.txt` - config files
 
-Determine which reviewers to invoke based on file counts:
+Determine which review agents to spawn based on file counts:
 
-| Reviewer | Condition |
-|----------|-----------|
-| security-reviewer | source > 0 |
-| project-rules-reviewer | total > 0 |
-| redundancy-reviewer | source + test > 0 |
-| code-quality-reviewer | source > 0 |
-| test-quality-reviewer | test > 0 |
-| performance-reviewer | source > 0 |
+| review agents                                | Condition         |
+|----------------------------------------------|-------------------|
+| reedom-quick-refactor:security-reviewer      | source > 0        |
+| reedom-quick-refactor:project-rules-reviewer | total > 0         |
+| reedom-quick-refactor:redundancy-reviewer    | source + test > 0 |
+| reedom-quick-refactor:code-quality-reviewer  | source > 0        |
+| reedom-quick-refactor:test-quality-reviewer  | test > 0          |
+| reedom-quick-refactor:performance-reviewer   | source > 0        |
 
 **Batching**: If total files exceed 10, batch by directory prefix (max 10 files per batch).
 
 Spawn review agents in parallel:
 ```
 Task(
-  subagent_type: "quick-refactor:security-reviewer",
+  subagent_type: "reedom-quick-refactor:security-reviewer",
   model: "sonnet",
   prompt: "temp_dir=<temp_dir> batch=1 files=<comma-separated>"
 )
@@ -91,7 +92,7 @@ For each finding in each review:
 2. Spawn refactor agent sequentially:
    ```
    Task(
-     subagent_type: "quick-refactor:refactorer",
+     subagent_type: "reedom-quick-refactor:refactorer",
      prompt: "finding=<JSON> commit=<true|false>"
    )
    ```
