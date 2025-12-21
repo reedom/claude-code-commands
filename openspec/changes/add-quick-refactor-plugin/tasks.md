@@ -2,33 +2,33 @@
 
 ## 1. Plugin Scaffolding
 
-- [ ] 1.1 Create `quick-refactor/.claude-plugin/plugin.json` with metadata
-- [ ] 1.2 Create directory structure: `commands/`, `agents/`, `skills/`
+- [x] 1.1 Create `quick-refactor/.claude-plugin/plugin.json` with metadata
+- [x] 1.2 Create directory structure: `commands/`, `agents/`, `skills/`
 
 ## 2. Collection Skill
 
-- [ ] 2.1 Create `skills/collect-commits-and-files/scripts/collect-info.sh`
+- [x] 2.1 Create `skills/collect-commits-and-files/scripts/collect-info.sh`
   - Parse `--against` and `--files` arguments
   - Run `git diff --name-only <branch>...HEAD` for changed files
   - Merge with explicitly specified files
   - Categorize files (source, test, config, docs)
   - Detect project rules paths (CLAUDE.md, .kiro steering) and record in manifest
   - Output JSON manifest with file paths
-- [ ] 2.2 Create `skills/collect-commits-and-files/scripts/cleanup.sh`
-- [ ] 2.3 Create `skills/collect-commits-and-files/SKILL.md`
+- [x] 2.2 Create `skills/collect-commits-and-files/scripts/cleanup.sh`
+- [x] 2.3 Create `skills/collect-commits-and-files/SKILL.md`
   - Define arguments, workflow, output schema
   - Document error handling
 
 ## 3. Entry Command
 
-- [ ] 3.1 Create `commands/quick-refactor.md`
+- [x] 3.1 Create `commands/quick-refactor.md`
   - Parse `--against` (default: origin/main), `--files`, `--commit|-c` arguments
   - Minimal logic: collect file paths and delegate to orchestrator
   - Pass all flags to orchestrator agent via Task tool prompt
 
 ## 4. Orchestrator Agent
 
-- [ ] 4.1 Create `agents/orchestrator.md`
+- [x] 4.1 Create `agents/orchestrator.md`
   - Parse `--commit` flag from prompt args
   - Pre-review: if `--commit` and uncommitted files exist, invoke `/reedom-git:smart-commit`
   - Phase 1: Invoke collect skill, read manifest
@@ -40,25 +40,25 @@
 
 ## 5. Review Agents
 
-- [ ] 5.1 Create `agents/security-reviewer.md` (model: sonnet)
+- [x] 5.1 Create `agents/security-reviewer.md` (model: sonnet)
   - Focus: injection, secrets, auth flaws, OWASP top 10
   - Input: temp_dir, file list
   - Output: JSON findings to `reviews/security.json`
-- [ ] 5.2 Create `agents/project-rules-reviewer.md` (model: sonnet)
+- [x] 5.2 Create `agents/project-rules-reviewer.md` (model: sonnet)
   - Focus: CLAUDE.md compliance, .kiro rules
   - Read context from temp directory
-- [ ] 5.3 Create `agents/redundancy-reviewer.md` (model: sonnet)
+- [x] 5.3 Create `agents/redundancy-reviewer.md` (model: sonnet)
   - Focus: DRY violations, duplicate logic, copy-paste code
-- [ ] 5.4 Create `agents/code-quality-reviewer.md` (model: sonnet)
+- [x] 5.4 Create `agents/code-quality-reviewer.md` (model: sonnet)
   - Focus: complexity, readability, SRP violations
-- [ ] 5.5 Create `agents/test-quality-reviewer.md` (model: sonnet)
+- [x] 5.5 Create `agents/test-quality-reviewer.md` (model: sonnet)
   - Focus: meaningless tests, missing assertions, redundant setup
-- [ ] 5.6 Create `agents/performance-reviewer.md` (model: sonnet)
+- [x] 5.6 Create `agents/performance-reviewer.md` (model: sonnet)
   - Focus: N+1 queries, memory inefficiencies, blocking I/O
 
 ## 6. Refactor Agent
 
-- [ ] 6.1 Create `agents/refactorer.md` (model: inherit)
+- [x] 6.1 Create `agents/refactorer.md` (model: inherit)
   - Input: finding JSON (includes file, code_snippet, score, why, suggestion), `--commit` flag
   - Read target file first (triggers project rules loading)
   - Search for code_snippet in file (line number is hint only)
@@ -82,5 +82,5 @@
 
 ## 8. Documentation
 
-- [ ] 8.1 Add usage examples to command description
-- [ ] 8.2 Document review categories and their triggers
+- [x] 8.1 Add usage examples to command description
+- [x] 8.2 Document review categories and their triggers
