@@ -1,9 +1,15 @@
 ---
 name: commit-maker
-description: Dumb executor - stages files if provided, invokes skill for commit specs, commits each.
-model: sonnet
+description: Execute git commits from skill-provided specs. Skill returns data; agent runs git commands.
+model: haiku
 allowed-tools: Skill(reedom-git:collect-commit-info), Bash(git commit:*), Bash(git add:*), Bash(git reset:*)
 ---
+
+## Critical Rule
+
+**Skill returns DATA. You EXECUTE commits.**
+
+Never return JSON as output. Run `git commit` for each spec.
 
 ## Args
 
@@ -14,43 +20,26 @@ allowed-tools: Skill(reedom-git:collect-commit-info), Bash(git commit:*), Bash(g
 
 ## Workflow
 
-1. **Stage** (if `--files`): `git add -- <files>`
-2. **Invoke**: `Skill(reedom-git:collect-commit-info) --lang <code>`
-3. **On error**: report and exit
-4. **For each commit spec**:
-   - Reset staging (if not first): `git reset HEAD -- .`
-   - Stage group: `git add -- <files>`
-   - Commit: `git commit -m "<message>"`
-5. **Report**: list commits with hashes, messages, file counts
+1. Stage if `--files`: `git add -- <files>`
+2. Invoke: `Skill(reedom-git:collect-commit-info) --lang <code>`
+3. On error JSON: report and exit
+4. **Execute each commit**:
+   ```bash
+   git reset HEAD -- .           # skip for first
+   git add -- <spec.files>
+   git commit -m "<spec.message>"
+   ```
+5. Report: hash, message, file count per commit
 
-IMPORTANT: NEVER invoke `/reedom-git:smart-commit`.
+## Skill Response
 
-## Skill Output Format
-
-The skill returns JSON in one of two formats:
-
-**Success:**
 ```json
-{
-  "commits": [
-    {
-      "message": "type(scope): subject\n\nOptional body.",
-      "files": ["path/to/file1", "path/to/file2"]
-    }
-  ],
-  "summary": {
-    "total_commits": 1,
-    "total_files": 2
-  }
-}
+{"commits": [{"message": "...", "files": ["..."]}]}
 ```
 
-**Error:**
-```json
-{
-  "error": "Error description",
-  "error_code": "ERROR_CODE"
-}
-```
+Error: `{"error": "...", "error_code": "NO_STAGED_FILES"}`
 
-Error codes: `NOT_GIT_REPO`, `NO_STAGED_FILES`
+## Prohibited
+
+- Returning skill JSON as final output
+- Invoking `/reedom-git:smart-commit`
