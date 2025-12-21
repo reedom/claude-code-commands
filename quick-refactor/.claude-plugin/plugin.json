@@ -1,0 +1,11 @@
+{
+  "name": "quick-refactor",
+  "version": "1.0.0",
+  "description": "Post-implementation review and refactoring with specialized multi-agent architecture",
+  "author": {
+    "name": "HANAI Tohru",
+    "email": "tohru@reedom.com"
+  },
+  "license": "MIT",
+  "keywords": ["refactor", "review", "code-quality", "security", "performance"]
+}
