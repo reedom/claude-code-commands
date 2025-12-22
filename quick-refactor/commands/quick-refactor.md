@@ -1,10 +1,10 @@
 ---
 description: Post-implementation review and refactoring with specialized multi-agent architecture
 argument-hint: "[--against|-a <branch>] [--files|-f <paths>] [--commit|-c]"
-allowed-tools: Task, Read, Write, TodoWrite, Ls, Find, Bash(cat:*), Bash(sed:*), Bash(tr:*), Bash(git status:*), Bash(git rev-parse:*), Skill(reedom-quick-refactor:collect-commits-and-files), Skill(reedom-git:smart-commit), Bash(${CLAUDE_PLUGIN_ROOT}/skills/collect-commits-and-files/scripts/collect-info.sh:*), Bash(${CLAUDE_PLUGIN_ROOT}/skills/collect-commits-and-files/scripts/cleanup.sh:*)
+allowed-tools: Task, TaskOutput, Read, Write, TodoWrite, Bash(cat:*), Bash(git status:*), Bash(${CLAUDE_PLUGIN_ROOT}/skills/collect-commits-and-files/scripts/cleanup.sh:*), Skill(reedom-quick-refactor:collect-commits-and-files), Skill(reedom-git:smart-commit)
 ---
 
-Entry point for post-implementation review. Collects file info and delegates to `quick-refactor:quick-refactor-orchestrator` agent.
+Post-implementation review and refactoring. Spawns specialized reviewer agents in parallel, then applies refactorings sequentially.
 
 ## Arguments
 
@@ -14,72 +14,128 @@ Entry point for post-implementation review. Collects file info and delegates to 
 | `--files`, `-f` | (none) | Comma-separated file paths to review |
 | `--commit`, `-c` | false | Commit after each successful refactoring |
 
-## Examples
-
-```bash
-# Review changes against origin/main
-/quick-refactor
-
-# Review against a specific branch
-/quick-refactor --against feature/auth
-
-# Review specific files only
-/quick-refactor --files src/auth/login.ts,src/auth/session.ts
-
-# Review and commit each refactoring
-/quick-refactor --commit
-
-# Combine options
-/quick-refactor --against develop --commit
-```
-
 ## Workflow
 
-### 1. Parse Arguments
+### Step 0: Create Todos
 
-Extract from command args:
-- `--against <branch>`: Target branch (default: `origin/main`)
-- `--files <paths>`: Comma-separated paths (optional)
-- `--commit` or `-c`: Enable per-refactoring commits (default: false)
+Create todo list to track progress:
 
-### 2. Quick Validation
+```
+1. [if --commit] Pre-review: commit uncommitted files
+2. Phase 1: Collect files
+3. Phase 2: Run parallel reviews
+4. Phase 3: Process review results
+5. Cleanup
+6. Report summary
+```
 
-Run `git status --porcelain` to verify:
-- Working directory is a git repo
-- Target branch is valid
+### Step 1: Pre-Review (if --commit)
 
-If validation fails, report error and exit.
+If `--commit` flag is set:
+1. Run `git status --porcelain`
+2. If non-empty output: invoke `Skill(reedom-git:smart-commit)`
 
-### 3. Delegate to Orchestrator
+### Step 2: Phase 1 - Collection
 
-Invoke orchestrator agent with all flags:
+Invoke the collection skill:
+
+```
+Skill(reedom-quick-refactor:collect-commits-and-files) --against=<branch> --files=<paths>
+```
+
+Store from response:
+- `temp_dir`: Base temporary directory
+- `paths.files_dir`: Directory containing file lists
+- `paths.reviews_dir`: Directory for review outputs
+- `summary`: File count summary
+
+### Step 3: Phase 2 - Parallel Review
+
+1. Read JSON files from `files_dir`:
+   - `source.json`: Source file list
+   - `test.json`: Test file list
+   - `config.json`: Config file list
+
+2. Spawn reviewer agents (max 2 concurrent) using Task tool:
+
+| Agent | Condition |
+|-------|-----------|
+| `reedom-quick-refactor:security-reviewer` | 0 < source count |
+| `reedom-quick-refactor:project-rules-reviewer` | 0 < total count |
+| `reedom-quick-refactor:redundancy-reviewer` | 0 < source + test count |
+| `reedom-quick-refactor:code-quality-reviewer` | 0 < source count |
+| `reedom-quick-refactor:test-quality-reviewer` | 0 < test count |
+| `reedom-quick-refactor:performance-reviewer` | 0 < source count |
+
+3. Spawn first batch (2 agents) with `run_in_background: true`:
 
 ```
 Task(
-  subagent_type: "reedom-quick-refactor:quick-refactor-orchestrator",
-  prompt: "--against=<branch> --files=<paths> --commit"
+  subagent_type: "reedom-quick-refactor:security-reviewer",
+  prompt: "temp_dir=<path>",
+  run_in_background: true
+)
+Task(
+  subagent_type: "reedom-quick-refactor:project-rules-reviewer",
+  prompt: "temp_dir=<path>",
+  run_in_background: true
 )
 ```
 
-Pass only flags that were provided. Example prompts:
-- No flags: `""`
-- Branch only: `"--against=develop"`
-- Files only: `"--files=src/auth/login.ts,src/auth/session.ts"`
-- With commit: `"--against=develop --commit"`
+4. Wait for batch completion with `TaskOutput`, then spawn next batch of 2
+5. Continue until all applicable reviewers complete
 
-### 4. Report Results
+### Step 4: Phase 3 - Process Results (MANDATORY)
 
-Orchestrator returns summary. Report to user:
-- Files reviewed
-- Findings by category
-- Refactorings applied vs skipped
-- Commits created (if `--commit` enabled)
+Execute even if no findings.
+
+1. Read all JSON files from `reviews_dir`
+2. For each finding, spawn refactorer sequentially:
+
+```
+Task(
+  subagent_type: "reedom-quick-refactor:refactorer",
+  prompt: "finding={...} commit=true|false"
+)
+```
+
+Wait for each refactorer to complete before spawning next.
+
+3. If no findings: log "No findings to refactor"
+
+### Step 5: Cleanup
+
+Run cleanup script:
+
+```bash
+${CLAUDE_PLUGIN_ROOT}/skills/collect-commits-and-files/scripts/cleanup.sh <temp_dir>
+```
+
+### Step 6: Report Summary
+
+Output final summary:
+
+```json
+{
+  "files_reviewed": N,
+  "reviews": {
+    "security": {"findings": N},
+    "project-rules": {"findings": N},
+    ...
+  },
+  "refactorings": {
+    "applied": N,
+    "skipped": N,
+    "failed": N
+  }
+}
+```
 
 ## Review Categories
 
 | Agent | Focus | Triggers |
 |-------|-------|----------|
-| security-reviewer | Vulnerabilities, secrets, injection | All source files |
+| security-reviewer | Vulnerabilities, secrets, injection | Source files |
 | project-rules-reviewer | CLAUDE.md, .kiro rules compliance | All files |
 | redundancy-reviewer | DRY violations, duplicate logic | Source + test files |
 | code-quality-reviewer | Complexity, readability, SRP | Source files |
