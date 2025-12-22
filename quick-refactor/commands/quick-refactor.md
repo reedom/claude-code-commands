@@ -1,7 +1,7 @@
 ---
 description: Post-implementation review and refactoring with specialized multi-agent architecture
 argument-hint: "[--against|-a <branch>] [--files|-f <paths>] [--commit|-c]"
-allowed-tools: Task, Read, Write, TodoWrite, Ls, Find, Skill(reedom-quick-refactor:collect-commits-and-files), Skill(reedom-git:smart-commit), Bash(git status:*), Bash(git rev-parse:*), Bash(${CLAUDE_PLUGIN_ROOT}/skills/collect-commits-and-files/scripts/collect-info.sh:*), Bash(${CLAUDE_PLUGIN_ROOT}/skills/collect-commits-and-files/scripts/cleanup.sh:*)
+allowed-tools: Task, Read, Write, TodoWrite, Ls, Find, Bash(cat:*), Bash(sed:*), Bash(tr:*), Bash(git status:*), Bash(git rev-parse:*), Skill(reedom-quick-refactor:collect-commits-and-files), Skill(reedom-git:smart-commit), Bash(${CLAUDE_PLUGIN_ROOT}/skills/collect-commits-and-files/scripts/collect-info.sh:*), Bash(${CLAUDE_PLUGIN_ROOT}/skills/collect-commits-and-files/scripts/cleanup.sh:*)
 ---
 
 Entry point for post-implementation review. Collects file info and delegates to `quick-refactor:quick-refactor-orchestrator` agent.

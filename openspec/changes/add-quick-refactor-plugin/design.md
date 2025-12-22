@@ -67,24 +67,43 @@ Six specialized agents, each with focused expertise:
 
 **Selection logic:** Orchestrator determines which reviewers to invoke based on file categories (source, test, config, etc.) from the collection manifest.
 
+### Decision: Temp Directory Location
+
+**Priority order for base path:**
+1. Git repository root (via `git rev-parse --show-toplevel`) → `.tmp/`
+2. System temp directory (`/tmp` or `$TMPDIR`) as fallback
+
+**Rationale:** Using project-local `.tmp` avoids permission issues with system `/tmp` and keeps temp files near the project.
+
+**Gitignore protection:**
+- `collect-info.sh` always creates/verifies `.tmp/.gitignore` with content `*`
+- Idempotent: creates if missing, leaves existing file unchanged
+- Prevents accidental commit of temp files
+
+**Cleanup scope:**
+- Remove only `quick-refactor-XXXXXX` subdirectory
+- Keep `.tmp` and `.gitignore` for future runs
+
 ### Decision: Temp Directory Structure
 
 ```
-/tmp/quick-refactor-XXXXXX/
-├── manifest.json           # Collection output (includes project_rules paths)
-├── diff/                   # Individual file diffs
-│   └── <hash>.diff
-├── files/                  # File paths by category
-│   ├── source.txt
-│   ├── test.txt
-│   └── config.txt
-└── reviews/                # Review agent outputs
-    ├── security.json
-    ├── project-rules.json
-    ├── redundancy.json
-    ├── code-quality.json
-    ├── test-quality.json
-    └── performance.json
+<git-root>/.tmp/
+├── .gitignore              # Contains `*` to ignore all temp files
+└── quick-refactor-XXXXXX/
+    ├── manifest.json           # Collection output (includes project_rules paths)
+    ├── diff/                   # Individual file diffs
+    │   └── <hash>.diff
+    ├── files/                  # File paths by category (JSON arrays)
+    │   ├── source.json
+    │   ├── test.json
+    │   └── config.json
+    └── reviews/                # Review agent outputs
+        ├── security.json
+        ├── project-rules.json
+        ├── redundancy.json
+        ├── code-quality.json
+        ├── test-quality.json
+        └── performance.json
 ```
 
 ### Decision: File Batching Strategy

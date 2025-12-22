@@ -32,21 +32,39 @@ The plugin SHALL provide a `/quick-refactor` command that reviews code changes a
 
 The plugin SHALL provide a skill that collects file information and project context into a temporary directory.
 
+#### Scenario: Temp directory location priority
+
+- **WHEN** `collect-info.sh` is executed inside a git repository
+- **THEN** the script creates temp directory at `<git-root>/.tmp/quick-refactor-XXXXXX`
+- **AND** falls back to system temp (`/tmp` or `$TMPDIR`) if git root detection fails
+
+#### Scenario: Gitignore protection
+
+- **WHEN** `collect-info.sh` creates or uses `.tmp` directory
+- **THEN** the script creates/verifies `.tmp/.gitignore` with content `*`
+- **AND** leaves existing `.gitignore` unchanged (idempotent)
+
 #### Scenario: Successful collection
 
 - **WHEN** the skill is invoked with valid branch and file arguments
-- **THEN** it creates a temp directory with manifest, diffs, and project context
+- **THEN** the script creates a temp directory with manifest, diffs, and project context
 - **AND** returns JSON with temp_dir path and file categorization
+
+#### Scenario: File list output format
+
+- **WHEN** the script categorizes files by type
+- **THEN** it writes JSON arrays to `files/<category>.json` (e.g., `source.json`, `test.json`)
+- **AND** each JSON file contains an array of file paths
 
 #### Scenario: No changed files
 
-- **WHEN** the skill finds no changed files against the target branch
+- **WHEN** the script finds no changed files against the target branch
 - **THEN** it returns an error JSON with code `NO_CHANGED_FILES`
 
 #### Scenario: Project rules detection
 
 - **WHEN** CLAUDE.md or .kiro steering docs exist
-- **THEN** the skill records their paths in the manifest JSON for reference
+- **THEN** the script records their paths in the manifest JSON for reference
 - **AND** agents access rules automatically when reading target files
 
 ### Requirement: Parallel Specialized Review
@@ -225,9 +243,10 @@ The plugin SHALL clean up temporary files after completion.
 #### Scenario: Normal completion cleanup
 
 - **WHEN** all refactoring completes successfully
-- **THEN** orchestrator invokes cleanup script to remove temp directory
+- **THEN** orchestrator invokes cleanup script to remove `quick-refactor-XXXXXX` subdirectory
+- **AND** keeps `.tmp` directory and `.gitignore` for future runs
 
 #### Scenario: Error path cleanup
 
 - **WHEN** an error occurs during review or refactoring
-- **THEN** orchestrator still invokes cleanup before exiting
+- **THEN** orchestrator still invokes cleanup to remove `quick-refactor-XXXXXX` subdirectory before exiting

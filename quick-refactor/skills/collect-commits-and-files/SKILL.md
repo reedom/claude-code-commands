@@ -25,7 +25,7 @@ ${CLAUDE_PLUGIN_ROOT}/skills/collect-commits-and-files/scripts/collect-info.sh -
 Returns JSON manifest:
 ```json
 {
-  "temp_dir": "/tmp/quick-refactor-XXXXXX",
+  "temp_dir": "<git-root>/.tmp/quick-refactor-XXXXXX",
   "repo_root": "/path/to/repo",
   "against_branch": "origin/main",
   "paths": {
@@ -59,16 +59,20 @@ Error codes:
 
 ### 3. Temp Directory Structure
 
+The script creates temp directory at `<git-root>/.tmp/` (falls back to system temp):
+
 ```
-/tmp/quick-refactor-XXXXXX/
-├── diff/                   # Individual file diffs
-│   └── <md5hash>.diff
-├── files/                  # File paths by category
-│   ├── source.txt
-│   ├── test.txt
-│   ├── config.txt
-│   └── docs.txt
-└── reviews/                # Empty, for review agent outputs
+<git-root>/.tmp/
+├── .gitignore              # Contains `*` to ignore all temp files
+└── quick-refactor-XXXXXX/
+    ├── diff/               # Individual file diffs
+    │   └── <md5hash>.diff
+    ├── files/              # File paths by category (JSON arrays)
+    │   ├── source.json     # ["path/to/file1.ts", "path/to/file2.ts"]
+    │   ├── test.json
+    │   ├── config.json
+    │   └── docs.json
+    └── reviews/            # Empty, for review agent outputs
 ```
 
 ### 4. Cleanup
