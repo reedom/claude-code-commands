@@ -63,8 +63,20 @@ if ! git rev-parse --verify "$AGAINST_BRANCH" &>/dev/null; then
   error_json "Branch not found: $AGAINST_BRANCH" "BRANCH_NOT_FOUND"
 fi
 
-# Create temp directory
-TEMP_DIR=$(mktemp -d "/tmp/quick-refactor-XXXXXX")
+# Create temp directory: prefer git-root/.tmp, fallback to system temp
+TMP_BASE=""
+if [[ -n "$REPO_ROOT" ]]; then
+  TMP_BASE="$REPO_ROOT/.tmp"
+  mkdir -p "$TMP_BASE"
+  # Ensure .gitignore exists with * to ignore all temp files (idempotent)
+  if [[ ! -f "$TMP_BASE/.gitignore" ]]; then
+    echo "*" > "$TMP_BASE/.gitignore"
+  fi
+else
+  TMP_BASE="${TMPDIR:-/tmp}"
+fi
+
+TEMP_DIR=$(mktemp -d "$TMP_BASE/quick-refactor-XXXXXX")
 mkdir -p "$TEMP_DIR/diff" "$TEMP_DIR/files" "$TEMP_DIR/reviews"
 
 # Collect changed files from git diff
@@ -162,11 +174,21 @@ if [[ $FILE_COUNT -eq 0 ]]; then
   error_json "No existing files to review (all files may be deleted)" "NO_EXISTING_FILES"
 fi
 
-# Write categorized file lists
-[[ -n "$SOURCE_FILES" ]] && echo -n "$SOURCE_FILES" > "$TEMP_DIR/files/source.txt"
-[[ -n "$TEST_FILES" ]] && echo -n "$TEST_FILES" > "$TEMP_DIR/files/test.txt"
-[[ -n "$CONFIG_FILES" ]] && echo -n "$CONFIG_FILES" > "$TEMP_DIR/files/config.txt"
-[[ -n "$DOCS_FILES" ]] && echo -n "$DOCS_FILES" > "$TEMP_DIR/files/docs.txt"
+# Helper to convert newline-separated list to JSON array
+to_json_array() {
+  local input="$1"
+  if [[ -z "$input" ]]; then
+    echo "[]"
+  else
+    echo -n "$input" | grep -v '^$' | jq -R -s 'split("\n") | map(select(length > 0))'
+  fi
+}
+
+# Write categorized file lists as JSON arrays
+to_json_array "$SOURCE_FILES" > "$TEMP_DIR/files/source.json"
+to_json_array "$TEST_FILES" > "$TEMP_DIR/files/test.json"
+to_json_array "$CONFIG_FILES" > "$TEMP_DIR/files/config.json"
+to_json_array "$DOCS_FILES" > "$TEMP_DIR/files/docs.json"
 
 # Count files by category (handle empty strings properly)
 if [[ -n "$SOURCE_FILES" ]]; then

@@ -10,7 +10,7 @@ The plugin SHALL provide a `/quick-refactor` command that reviews code changes a
 
 - **WHEN** user invokes `/quick-refactor` without arguments
 - **THEN** the command collects changed files against `origin/main`
-- **AND** delegates to the orchestrator agent for review and refactoring
+- **AND** spawns review agents via Task tool for review and refactoring
 
 #### Scenario: Custom target branch
 
@@ -25,28 +25,46 @@ The plugin SHALL provide a `/quick-refactor` command that reviews code changes a
 #### Scenario: Commit mode enabled
 
 - **WHEN** user invokes `/quick-refactor --commit`
-- **THEN** the command passes `--commit` flag to orchestrator agent
-- **AND** orchestrator enables per-refactoring commits
+- **THEN** the command enables per-refactoring commits
+- **AND** passes `commit=true` to refactor agents via Task tool prompt
 
 ### Requirement: Collection Skill
 
 The plugin SHALL provide a skill that collects file information and project context into a temporary directory.
 
+#### Scenario: Temp directory location priority
+
+- **WHEN** `collect-info.sh` is executed inside a git repository
+- **THEN** the script creates temp directory at `<git-root>/.tmp/quick-refactor-XXXXXX`
+- **AND** falls back to system temp (`/tmp` or `$TMPDIR`) if git root detection fails
+
+#### Scenario: Gitignore protection
+
+- **WHEN** `collect-info.sh` creates or uses `.tmp` directory
+- **THEN** the script creates/verifies `.tmp/.gitignore` with content `*`
+- **AND** leaves existing `.gitignore` unchanged (idempotent)
+
 #### Scenario: Successful collection
 
 - **WHEN** the skill is invoked with valid branch and file arguments
-- **THEN** it creates a temp directory with manifest, diffs, and project context
+- **THEN** the script creates a temp directory with manifest, diffs, and project context
 - **AND** returns JSON with temp_dir path and file categorization
+
+#### Scenario: File list output format
+
+- **WHEN** the script categorizes files by type
+- **THEN** it writes JSON arrays to `files/<category>.json` (e.g., `source.json`, `test.json`)
+- **AND** each JSON file contains an array of file paths
 
 #### Scenario: No changed files
 
-- **WHEN** the skill finds no changed files against the target branch
+- **WHEN** the script finds no changed files against the target branch
 - **THEN** it returns an error JSON with code `NO_CHANGED_FILES`
 
 #### Scenario: Project rules detection
 
 - **WHEN** CLAUDE.md or .kiro steering docs exist
-- **THEN** the skill records their paths in the manifest JSON for reference
+- **THEN** the script records their paths in the manifest JSON for reference
 - **AND** agents access rules automatically when reading target files
 
 ### Requirement: Parallel Specialized Review
@@ -56,13 +74,13 @@ The plugin SHALL spawn specialized review agents in parallel to analyze code fro
 #### Scenario: File batching for large sets
 
 - **WHEN** 10 or more files require review
-- **THEN** the orchestrator groups files by directory prefix
+- **THEN** the command groups files by directory prefix
 - **AND** limits each batch to 10 files maximum
 
 #### Scenario: Review category selection
 
 - **WHEN** only test files are changed
-- **THEN** the orchestrator spawns only test-quality-reviewer
+- **THEN** the command spawns only test-quality-reviewer
 - **AND** skips source-only reviewers like performance-reviewer
 
 #### Scenario: Review output format
@@ -198,7 +216,7 @@ The plugin SHALL support opt-in automatic commits when `--commit` flag is provid
 #### Scenario: Pre-review commit of uncommitted files
 
 - **WHEN** `--commit` flag is enabled and uncommitted files exist
-- **THEN** orchestrator invokes `/reedom-git:smart-commit` before starting review
+- **THEN** command invokes `/reedom-git:smart-commit` before starting review
 - **AND** ensures working tree is clean for review phase
 
 #### Scenario: Per-refactoring commit
@@ -225,9 +243,10 @@ The plugin SHALL clean up temporary files after completion.
 #### Scenario: Normal completion cleanup
 
 - **WHEN** all refactoring completes successfully
-- **THEN** orchestrator invokes cleanup script to remove temp directory
+- **THEN** command invokes cleanup script to remove `quick-refactor-XXXXXX` subdirectory
+- **AND** keeps `.tmp` directory and `.gitignore` for future runs
 
 #### Scenario: Error path cleanup
 
 - **WHEN** an error occurs during review or refactoring
-- **THEN** orchestrator still invokes cleanup before exiting
+- **THEN** command still invokes cleanup to remove `quick-refactor-XXXXXX` subdirectory before exiting
