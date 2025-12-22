@@ -1,83 +1,78 @@
 ---
-name: reedom-git:collect-commit-info
-description: Collect staged files, group them, generate commit messages, and return commit specs.
+name: collect-commit-info
+description: Analyze staged files, group by category, and generate conventional commit specs as JSON.
 allowed-tools: Read, Bash(${CLAUDE_PLUGIN_ROOT}/skills/collect-commit-info/scripts/collect-info.sh:*), Bash(${CLAUDE_PLUGIN_ROOT}/skills/collect-commit-info/scripts/cleanup.sh:*)
 ---
 
-Heavy lifter skill: collect staged file info, group files, generate commit messages, cleanup, return specs.
-NEVER invoke `/reedom-git:smart-commit`.
+This skill analyzes staged git files and returns commit specifications as JSON. It:
+1. Collects staged file metadata via script
+2. Reads diff content to understand changes
+3. Groups files by category (deps, ci, config, source, test, docs)
+4. Generates conventional commit messages for each group
+5. Returns JSON specs for the caller to execute
 
 ## Arguments
 
 | Arg | Default | Description |
 |-----|---------|-------------|
-| `--lang` | system | Language for commit messages |
+| `--lang` | context | Message language (conversation context → system locale → en) |
+
+## Output Contract
+
+This skill ALWAYS returns JSON. The caller executes git commands based on this output.
+
+**Success:**
+```json
+{
+  "commits": [
+    {"message": "type(scope): subject\n\nBody", "files": ["file1", "file2"]}
+  ],
+  "summary": {"total_commits": 1, "total_files": 2}
+}
+```
+
+**Error:**
+```json
+{"error": "description", "error_code": "CODE"}
+```
 
 ## Workflow
 
-### 1. Collect Staged File Info
+### Step 1: Collect file info
 
-Run:
 ```bash
 ${CLAUDE_PLUGIN_ROOT}/skills/collect-commit-info/scripts/collect-info.sh --lang <code>
 ```
 
-Returns JSON:
-```json
-{
-  "temp_dir": "/tmp/collect-commit-info-XXXXXX",
-  "repo_root": "/path/to/repo",
-  "lang": {"system": "en", "effective": "ja"},
-  "paths": {
-    "staged_list": "<temp_dir>/staged_files.txt",
-    "diff_content": "<temp_dir>/diff_content.txt",
-    "file_stats": "<temp_dir>/file_stats.txt"
-  },
-  "summary": {
-    "staged_count": 5,
-    "total_additions": 120,
-    "total_deletions": 30
-  },
-  "files": [
-    {"file": "package.json", "category": "deps", "additions": 10, "deletions": 2},
-    {"file": "src/auth/login.ts", "category": "source", "additions": 80, "deletions": 15}
-  ]
-}
-```
+Script returns JSON with `temp_dir`, `files` array (with categories), and `paths.diff_content`.
 
-### 2. Handle Errors
+On error JSON → return it immediately and stop.
 
-If script returns error, report to caller and exit:
-```json
-{"error": "No staged files to commit", "error_code": "NO_STAGED_FILES"}
-```
+### Step 2: Read diff content
 
-### 3. Read Diff Content
+Read the file at `paths.diff_content` to understand what changed.
 
-Read `diff_content` file to understand what changed for message generation.
+### Step 3: Group files by category
 
-### 4. Group Files by Category
-
-Group files from the `files` array by category. Commit order:
-1. `deps` - Dependencies
-2. `ci` - CI/CD
-3. `config` - Configuration
+Group files from the `files` array. Commit order:
+1. `deps` - Dependencies (package.json, lock files)
+2. `ci` - CI/CD (.github/*)
+3. `config` - Configuration (*.yml, *.toml, rc files)
 4. `source` - Source code
-5. `test` - Tests
-6. `docs` - Documentation
+5. `test` - Tests (*_test.*, *.test.*, *.spec.*)
+6. `docs` - Documentation (*.md, docs/*)
 
-### 5. Generate Commit Message Per Group
+### Step 4: Generate commit messages
 
-For each group, analyze the diff content and generate a conventional commit message:
+For each group, create a conventional commit message:
 
-**Format:**
 ```
-type(scope): imperative subject under 50 chars
+type(scope): imperative subject (max 50 chars)
 
 Optional body explaining what and why.
 ```
 
-**Type mapping:**
+**Type by category:**
 | Category | Type |
 |----------|------|
 | deps | chore |
@@ -87,72 +82,19 @@ Optional body explaining what and why.
 | test | test |
 | docs | docs |
 
-**For source files, determine type by analyzing diff:**
-- New files with new functionality → `feat`
-- Bug fixes (fix patterns, error handling) → `fix`
-- Code restructuring without behavior change → `refactor`
-- Mostly deletions/cleanup → `refactor`
+**For source files, analyze diff to determine type:**
+- New functionality → `feat`
+- Bug fixes, error handling → `fix`
+- Restructuring, cleanup → `refactor`
 
-**Scope:** Derive from file paths (e.g., `src/auth/*` → `auth`)
+**Scope:** Derive from paths (e.g., `src/auth/*` → `auth`)
 
-**Language:** Use `lang.effective` for message language.
+**Language:** Use `lang.effective` from script output. If conversation context indicates a preferred language, use that instead.
 
-### 6. Cleanup Temp Directory
+### Step 5: Cleanup and return
 
-Run:
 ```bash
 ${CLAUDE_PLUGIN_ROOT}/skills/collect-commit-info/scripts/cleanup.sh <temp_dir>
 ```
 
-### 7. Return Commit Specs
-
-Return JSON array of commit specs:
-
-```json
-{
-  "commits": [
-    {
-      "message": "chore(deps): update dependencies\n\nBump package versions for security patches.",
-      "files": ["package.json", "pnpm-lock.yaml"]
-    },
-    {
-      "message": "feat(auth): add OAuth2 login support\n\nImplement OAuth2 flow with Google provider.",
-      "files": ["src/auth/login.ts", "src/auth/oauth.ts"]
-    }
-  ],
-  "summary": {
-    "total_commits": 2,
-    "total_files": 4
-  }
-}
-```
-
-## Single Commit Case
-
-If all files belong to one category (or splitting not needed), return single commit:
-
-```json
-{
-  "commits": [
-    {
-      "message": "feat(auth): implement user authentication",
-      "files": ["src/auth/login.ts", "src/auth/session.ts"]
-    }
-  ],
-  "summary": {
-    "total_commits": 1,
-    "total_files": 2
-  }
-}
-```
-
-## Error Response
-
-If error occurs, return:
-
-```json
-{
-  "error": "Error description",
-  "error_code": "ERROR_CODE"
-}
-```
+Return the JSON commit specs.

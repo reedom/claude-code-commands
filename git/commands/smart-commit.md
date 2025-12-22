@@ -1,89 +1,54 @@
 ---
-description: Select files from working tree and delegate to commit-maker agent
+description: Orchestrate smart git commits by selecting files and delegating to commit-maker agent
 argument-hint: [--staged|-s] [--lang <code>]
-allowed-tools: Task, Bash(git status:*), Skill(reedom-git:collect-commit-info), Bash(git commit:*), Bash(git add:*), Bash(git reset:*), Bash(${CLAUDE_PLUGIN_ROOT}/skills/collect-commit-info/scripts/collect-info.sh:*), Bash(${CLAUDE_PLUGIN_ROOT}/skills/collect-commit-info/scripts/cleanup.sh:*)
+allowed-tools: Task, Bash(git commit:*), Bash(git add:*), Bash(git reset:*), Bash(git status:*), Skill(reedom-git:collect-commit-info)
 ---
 
-<prohibited>
-
-NEVER use these commands:
-- `git diff` (any form)
-- `git log`
-- `git add`
-- `git commit`
-- Any git command except `git status --porcelain`
-
-NEVER stage files. Agent handles staging.
-NEVER pass args other than `--lang`/`--files`.
-
-</prohibited>
+This command selects files and delegates to the commit-maker agent.
 
 ## Arguments
 
 | Flag | Default | Description |
 |------|---------|-------------|
-| `--staged`, `-s` | false | Pass-through to agent (skip file selection) |
-| `--lang` | system | Commit message language code |
+| `--staged`, `-s` | false | Commit already-staged files (skip file selection) |
+| `--lang` | context | Commit message language |
 
-## Execution
+## Workflow
 
-### If `-s` flag present
+### With `--staged` flag
 
-Delegate immediately. No git commands.
+Delegate immediately:
 
 ```
 Task(subagent_type: "reedom-git:commit-maker", prompt: "--lang=<lang>")
 ```
 
-### If no `-s` flag
+### Without `--staged` flag
 
-**Step 1: Read working tree**
+**Step 1: Recall files from conversation memory**
+
+List files that were created or modified by you in this conversation.
+
+If you have memory of files → go to Step 3.
+
+**Step 2: Fallback to git status (only if no memory)**
+
+If you have no memory of modified files:
 
 ```bash
 git status --porcelain
 ```
 
-Empty output → report "Nothing to commit" → exit.
+Select files based on:
+- Modified/added/deleted files (`M`, `A`, `D`, `R`)
+- Related untracked files (`??`) in same directory
+- Exclude: IDE config (.idea/, .vscode/), temp files
 
-**Step 2: Select files**
-
-From `git status --porcelain` output, select files using conversation context.
-
-Include:
-- Status `M`, `A`, `D`, `R` (modified/added/deleted/renamed)
-- Untracked (`??`) in same directory as changes
-- Untracked with related naming (e.g., test file for source)
-- Files mentioned in conversation
-
-Exclude:
-- Unrelated directories
-- Scratch/temp files
-
-**Step 3: Delegate**
+**Step 3: Delegate to agent**
 
 ```
 Task(
   subagent_type: "reedom-git:commit-maker",
   prompt: "--lang=<lang> --files=<comma-separated-paths>"
-)
-```
-
-## Example
-
-Input:
-```
- M src/auth/login.ts
- M src/auth/session.ts
-?? src/auth/oauth.ts
-?? scratch/notes.txt
-```
-
-Decision: auth files related, scratch excluded.
-
-Output:
-```
-Task(
-  subagent_type: "reedom-git:commit-maker",
-  prompt: "--files=src/auth/login.ts,src/auth/session.ts,src/auth/oauth.ts"
 )
 ```
