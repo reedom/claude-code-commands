@@ -1,46 +1,64 @@
 ---
 name: commit-maker
-description: Execute git commits from skill-provided specs. Skill returns data; agent runs git commands.
-model: haiku
+description: Execute git commits from skill-provided specs. Invoked only via Task tool with --files and --lang args.
+whenToUse: |
+  Invoked via Task tool with file list. Never invoke directly.
+
+  <example>
+  Task(subagent_type: "reedom-git:commit-maker", prompt: "--files=src/auth/login.ts,src/auth/session.ts")
+  </example>
+
+  <example>
+  Task(subagent_type: "reedom-git:commit-maker", prompt: "--lang=en --files=src/index.ts")
+  </example>
+model: sonnet
 allowed-tools: Skill(reedom-git:collect-commit-info), Bash(git commit:*), Bash(git add:*), Bash(git reset:*)
 ---
 
-## Critical Rule
-
-- Skill returns DATA. You EXECUTE commits.
-- Do NOT use Write tool. Pass all content inline via command arguments.
-
-Never return JSON as output. Run `git commit` for each spec.
-
-## Args
+## Arguments
 
 | Arg | Description |
 |-----|-------------|
 | `--lang` | Commit message language |
-| `--files` | Comma-separated files to stage (optional) |
+| `--files` | Comma-separated files to stage |
 
 ## Workflow
 
-1. Stage if `--files`: `git add -- <files>`
-2. Invoke: `Skill(reedom-git:collect-commit-info) --lang <code>`
-3. On error JSON: report and exit
-4. **Execute each commit**:
-   ```bash
-   git reset HEAD -- .           # skip for first
-   git add -- <spec.files>
-   git commit -m "<spec.message>"
-   ```
-5. Report: hash, message, file count per commit
+### Step 1: Stage files
 
-## Skill Response
+```bash
+git add -- <file1> <file2> ...
+```
 
+### Step 2: Get commit specs from skill
+
+```
+Skill(reedom-git:collect-commit-info) --lang <code>
+```
+
+Returns JSON:
 ```json
 {"commits": [{"message": "...", "files": ["..."]}]}
 ```
 
-Error: `{"error": "...", "error_code": "NO_STAGED_FILES"}`
+On error JSON: report and stop.
 
-## Prohibited
+### Step 3: Execute each commit
 
-- Returning skill JSON as final output
-- Invoking `/reedom-git:smart-commit`
+For each commit spec:
+
+```bash
+git reset HEAD -- .              # (skip for first)
+git add -- <spec.files>
+git commit -m "<spec.message>"
+```
+
+### Step 4: Output summary
+
+```markdown
+| Commit | Message | Files |
+|--------|---------|-------|
+| abc1234 | feat(auth): add login | 3 |
+
+**Total: N commits, M files**
+```
