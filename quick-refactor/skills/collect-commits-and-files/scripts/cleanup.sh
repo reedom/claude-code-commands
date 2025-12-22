@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # Clean up temp directory created by collect-info.sh
+# Only removes the quick-refactor-XXXXXX subdirectory, keeps .tmp and .gitignore
 
 set -uo pipefail
 
@@ -15,8 +16,8 @@ if [[ ! -d "$TEMP_DIR" ]]; then
   exit 1
 fi
 
-# Verify it's a quick-refactor temp directory
-if [[ ! "$TEMP_DIR" =~ ^/tmp/quick-refactor- ]]; then
+# Verify it's a quick-refactor temp directory (either in .tmp or system temp)
+if [[ ! "$TEMP_DIR" =~ /quick-refactor-[A-Za-z0-9]+$ ]]; then
   echo "Not a quick-refactor temp directory: $TEMP_DIR" >&2
   exit 1
 fi
