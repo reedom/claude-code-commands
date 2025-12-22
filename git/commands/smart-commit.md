@@ -1,12 +1,10 @@
 ---
 description: Orchestrate smart git commits by selecting files and delegating to commit-maker agent
 argument-hint: [--staged|-s] [--lang <code>]
-allowed-tools: Task, Skill(reedom-git:collect-commit-info), Bash(git commit:*), Bash(git add:*), Bash(git reset:*)
+allowed-tools: Task, Bash(git commit:*), Bash(git add:*), Bash(git reset:*), Bash(git status:*), Skill(reedom-git:collect-commit-info)
 ---
 
-This command selects files from **conversation memory** and delegates to the commit-maker agent.
-
-Do NOT run any git commands. Use only your knowledge of what was modified in this conversation.
+This command selects files and delegates to the commit-maker agent.
 
 ## Arguments
 
@@ -27,31 +25,30 @@ Task(subagent_type: "reedom-git:commit-maker", prompt: "--lang=<lang>")
 
 ### Without `--staged` flag
 
-**Step 1: Recall files from conversation**
+**Step 1: Recall files from conversation memory**
 
-From your memory of this conversation, list files that were:
-- Created by you
-- Modified by you
-- Discussed with the user
+List files that were created or modified by you in this conversation.
 
-**Step 2: Delegate to agent**
+If you have memory of files → go to Step 3.
+
+**Step 2: Fallback to git status (only if no memory)**
+
+If you have no memory of modified files:
+
+```bash
+git status --porcelain
+```
+
+Select files based on:
+- Modified/added/deleted files (`M`, `A`, `D`, `R`)
+- Related untracked files (`??`) in same directory
+- Exclude: IDE config (.idea/, .vscode/), temp files
+
+**Step 3: Delegate to agent**
 
 ```
 Task(
   subagent_type: "reedom-git:commit-maker",
   prompt: "--lang=<lang> --files=<comma-separated-paths>"
-)
-```
-
-## Example
-
-During conversation, you modified `src/auth/login.ts` and `src/auth/session.ts`.
-
-Delegate with those files:
-
-```
-Task(
-  subagent_type: "reedom-git:commit-maker",
-  prompt: "--files=src/auth/login.ts,src/auth/session.ts"
 )
 ```
