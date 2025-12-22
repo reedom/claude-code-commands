@@ -19,24 +19,23 @@
   - Define arguments, workflow, output schema
   - Document error handling
 
-## 3. Entry Command
+## 3. Entry Command (with Orchestration)
 
 - [x] 3.1 Create `commands/quick-refactor.md`
   - Parse `--against` (default: origin/main), `--files`, `--commit|-c` arguments
-  - Minimal logic: collect file paths and delegate to orchestrator
-  - Pass all flags to orchestrator agent via Task tool prompt
-
-## 4. Orchestrator Agent
-
-- [x] 4.1 Create `agents/orchestrator.md`
-  - Parse `--commit` flag from prompt args
+  - **Command handles orchestration directly** (no separate orchestrator agent)
   - Pre-review: if `--commit` and uncommitted files exist, invoke `/reedom-git:smart-commit`
   - Phase 1: Invoke collect skill, read manifest
-  - Phase 2: Batch files, spawn review agents (parallel)
-  - Phase 3: Validate findings, spawn refactor agents (sequential)
-    - Pass `--commit` flag to refactor agent if enabled
-  - Use TodoWrite for progress tracking
+  - Phase 2: Batch files, spawn review agents (parallel via Task tool)
+  - Phase 3: Read review results, spawn refactor agents (sequential)
   - Cleanup temp directory on completion
+
+## 4. ~~Orchestrator Agent~~ (Removed)
+
+- [x] ~~4.1 Create `agents/orchestrator.md`~~ **Deleted**
+  - **Reason:** Agent-to-agent Task tool spawning proved unreliable (hallucinations)
+  - **Solution:** Merged orchestration logic into command (task 3.1)
+  - **Pattern:** Follows `pr-review-toolkit:review-pr` approach
 
 ## 5. Review Agents
 

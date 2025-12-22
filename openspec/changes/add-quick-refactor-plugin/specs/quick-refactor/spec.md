@@ -10,7 +10,7 @@ The plugin SHALL provide a `/quick-refactor` command that reviews code changes a
 
 - **WHEN** user invokes `/quick-refactor` without arguments
 - **THEN** the command collects changed files against `origin/main`
-- **AND** delegates to the orchestrator agent for review and refactoring
+- **AND** spawns review agents via Task tool for review and refactoring
 
 #### Scenario: Custom target branch
 
@@ -25,8 +25,8 @@ The plugin SHALL provide a `/quick-refactor` command that reviews code changes a
 #### Scenario: Commit mode enabled
 
 - **WHEN** user invokes `/quick-refactor --commit`
-- **THEN** the command passes `--commit` flag to orchestrator agent
-- **AND** orchestrator enables per-refactoring commits
+- **THEN** the command enables per-refactoring commits
+- **AND** passes `commit=true` to refactor agents via Task tool prompt
 
 ### Requirement: Collection Skill
 
@@ -74,13 +74,13 @@ The plugin SHALL spawn specialized review agents in parallel to analyze code fro
 #### Scenario: File batching for large sets
 
 - **WHEN** 10 or more files require review
-- **THEN** the orchestrator groups files by directory prefix
+- **THEN** the command groups files by directory prefix
 - **AND** limits each batch to 10 files maximum
 
 #### Scenario: Review category selection
 
 - **WHEN** only test files are changed
-- **THEN** the orchestrator spawns only test-quality-reviewer
+- **THEN** the command spawns only test-quality-reviewer
 - **AND** skips source-only reviewers like performance-reviewer
 
 #### Scenario: Review output format
@@ -216,7 +216,7 @@ The plugin SHALL support opt-in automatic commits when `--commit` flag is provid
 #### Scenario: Pre-review commit of uncommitted files
 
 - **WHEN** `--commit` flag is enabled and uncommitted files exist
-- **THEN** orchestrator invokes `/reedom-git:smart-commit` before starting review
+- **THEN** command invokes `/reedom-git:smart-commit` before starting review
 - **AND** ensures working tree is clean for review phase
 
 #### Scenario: Per-refactoring commit
@@ -243,10 +243,10 @@ The plugin SHALL clean up temporary files after completion.
 #### Scenario: Normal completion cleanup
 
 - **WHEN** all refactoring completes successfully
-- **THEN** orchestrator invokes cleanup script to remove `quick-refactor-XXXXXX` subdirectory
+- **THEN** command invokes cleanup script to remove `quick-refactor-XXXXXX` subdirectory
 - **AND** keeps `.tmp` directory and `.gitignore` for future runs
 
 #### Scenario: Error path cleanup
 
 - **WHEN** an error occurs during review or refactoring
-- **THEN** orchestrator still invokes cleanup to remove `quick-refactor-XXXXXX` subdirectory before exiting
+- **THEN** command still invokes cleanup to remove `quick-refactor-XXXXXX` subdirectory before exiting

@@ -1,7 +1,7 @@
 ---
 description: Post-implementation review and refactoring with specialized multi-agent architecture
 argument-hint: "[--against|-a <branch>] [--files|-f <paths>] [--commit|-c]"
-allowed-tools: Task, TaskOutput, Read, Write, TodoWrite, Bash(cat:*), Bash(git status:*), Bash(${CLAUDE_PLUGIN_ROOT}/skills/collect-commits-and-files/scripts/cleanup.sh:*), Skill(reedom-quick-refactor:collect-commits-and-files), Skill(reedom-git:smart-commit)
+allowed-tools: Task, TaskOutput, Read, Write, TodoWrite, Bash(cat:*), Bash(git status:*), Skill(reedom-quick-refactor:collect-commits-and-files), Skill(reedom-git:smart-commit)
 ---
 
 Post-implementation review and refactoring. Spawns specialized reviewer agents in parallel, then applies refactorings sequentially.

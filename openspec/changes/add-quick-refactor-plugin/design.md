@@ -2,11 +2,13 @@
 
 ## Context
 
-This plugin implements a three-phase post-implementation review and refactoring workflow using specialized agents. The design follows the proven pattern from `reedom-git` plugin (command → agent → skill with temp directory).
+This plugin implements a three-phase post-implementation review and refactoring workflow using specialized agents. The design follows the proven pattern from `pr-review-toolkit` plugin (command directly spawns agents via Task tool).
 
 Key stakeholders:
 - Developers who want automated code review after implementing features
 - The main Claude conversation that should not be burdened with review details
+
+**Architecture Update (2025-12-22):** Originally designed with an orchestrator agent, but agent-to-agent Task tool spawning proved unreliable. Converted to command-based orchestration following `pr-review-toolkit:review-pr` pattern.
 
 ## Goals / Non-Goals
 
@@ -25,22 +27,23 @@ Key stakeholders:
 
 ## Decisions
 
-### Decision: Three-Phase Architecture
+### Decision: Three-Phase Architecture (Command-Based)
 
-**Phase 1: Collection** (orchestrator invokes skill)
-- Orchestrator agent invokes `collect-commits-and-files` skill
+**Phase 1: Collection** (command invokes skill)
+- Command invokes `collect-commits-and-files` skill
 - Skill script collects: commit diffs against target branch, specified files, project rules
 - Writes structured data to temp directory
-- Returns JSON manifest with file paths to orchestrator
+- Returns JSON manifest with file paths to command
 
-**Phase 2: Review** (orchestrator spawns parallel sonnet agents)
-- Orchestrator batches files intelligently (by directory or size)
-- Orchestrator spawns up to 6 specialized review agents (model: sonnet)
+**Phase 2: Review** (command spawns parallel sonnet agents)
+- Command batches files intelligently (by directory or size)
+- Command spawns up to 6 specialized review agents via Task tool (model: sonnet)
+- Agents run in background (max 2 concurrent), command waits with TaskOutput
 - Each agent writes its report to temp directory (unique filename)
 - Review categories selected dynamically based on file types
 
-**Phase 3: Refactoring** (orchestrator spawns sequential agents, model: inherit)
-- Orchestrator reads each review report
+**Phase 3: Refactoring** (command spawns sequential agents, model: inherit)
+- Command reads each review report from temp directory
 - For each finding, spawns refactor agent with finding data (inline in prompt)
 - Refactor agent reads target file (triggers project rules loading)
 - Refactor agent validates finding against actual code + rules (full delegation)
@@ -48,6 +51,7 @@ Key stakeholders:
 - If `--commit` flag: refactor agent commits after each successful change
 
 **Alternatives considered:**
+- Orchestrator agent: rejected - agent-to-agent Task tool spawning unreliable (hallucinations)
 - Single monolithic agent: rejected due to context limits and lack of specialization
 - Per-file agents: rejected due to excessive overhead with many files
 - Interactive mode: rejected per user preference for automatic operation
@@ -65,7 +69,7 @@ Six specialized agents, each with focused expertise:
 | `test-quality-reviewer` | Meaningless tests, coverage gaps | Test files only |
 | `performance-reviewer` | N+1 queries, memory leaks, inefficiencies | Source files |
 
-**Selection logic:** Orchestrator determines which reviewers to invoke based on file categories (source, test, config, etc.) from the collection manifest.
+**Selection logic:** Command determines which reviewers to invoke based on file categories (source, test, config, etc.) from the collection manifest.
 
 ### Decision: Temp Directory Location
 
@@ -169,7 +173,7 @@ Refactor agent reports validation outcome (applied/skipped with reason).
 Opt-in flag to commit after each refactoring. When enabled:
 
 **Pre-review commit check:**
-1. Before Phase 2 (review), orchestrator checks for uncommitted changes
+1. Before Phase 2 (review), command checks for uncommitted changes
 2. If uncommitted files exist, invoke `/reedom-git:smart-commit` to commit them
 3. This ensures review operates on clean working tree
 
@@ -179,8 +183,7 @@ Opt-in flag to commit after each refactoring. When enabled:
 3. Example: `refactor(auth): use parameterized queries`
 
 **Flag propagation:**
-- Command passes `--commit` to orchestrator agent
-- Orchestrator passes flag to refactor agent via prompt args
+- Command passes `commit=true|false` to refactor agent via Task tool prompt
 - Refactor agent uses `git add <file> && git commit -m "..."` after Edit
 
 **Alternatives considered:**
@@ -194,9 +197,10 @@ Opt-in flag to commit after each refactoring. When enabled:
 |------|------------|
 | False positives in reviews | Validation phase filters invalid findings |
 | Agent context limits | Batching limits files per agent; findings are concise JSON |
-| Temp directory cleanup | Explicit cleanup script; orchestrator ensures cleanup on exit |
+| Temp directory cleanup | Explicit cleanup script; command ensures cleanup on exit |
 | Model cost (sonnet agents) | Use haiku for simple collection; sonnet only for review |
 | Conflicting refactors | Sequential application; each refactor re-reads current file state |
+| Agent spawning reliability | Command-based orchestration (not agent-to-agent) proven stable |
 
 ## Migration Plan
 
